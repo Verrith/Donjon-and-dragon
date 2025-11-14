@@ -1,0 +1,100 @@
+<head>
+    <title>DND</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <script>
+    // === CONFIG TWITCH ===
+    const TWITCH_CLIENT_ID = "TON_CLIENT_ID_ICI";
+    const TWITCH_REDIRECT = "https://tonUser.github.io/tonRepo/";
+
+    // Fonction pour démarrer la connexion Twitch
+    function twitchLogin() {
+        const scope = "user:read:email";
+        const url =
+        `https://id.twitch.tv/oauth2/authorize?client_id=${TWITCH_CLIENT_ID}` +
+        `&redirect_uri=${encodeURIComponent(TWITCH_REDIRECT)}` +
+        `&response_type=token&scope=${encodeURIComponent(scope)}`;
+
+        window.location = url;
+    }
+
+    // Fonction qui lit le token dans l’URL (implicit flow)
+    function getTokenFromURL() {
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        return params.get("access_token");
+    }
+
+    // Récupérer infos utilisateur Twitch
+    async function fetchTwitchUser(token) {
+        const res = await fetch("https://api.twitch.tv/helix/users", {
+        headers: {
+            "Authorization": "Bearer " + token,
+            "Client-Id": TWITCH_CLIENT_ID
+        }
+        });
+        const data = await res.json();
+        return data.data[0]; // user object
+    }
+    </script>
+</head>
+<body>
+    <button onclick="twitchLogin()">Se connecter avec Twitch</button>
+    <div id="twitchUser"></div>
+    <script type="module">
+    // Firebase import (même que dans la version précédente)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+    import {
+        getFirestore, doc, setDoc, onSnapshot, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "XXXX",
+        authDomain: "XXXX.firebaseapp.com",
+        projectId: "XXXX",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const twitchUserDiv = document.getElementById("twitchUser");
+    const token = getTokenFromURL();
+
+    let currentUser = null;
+
+    // Si Twitch a renvoyé un accès_token
+    if (token) {
+        (async () => {
+        const user = await fetchTwitchUser(token);
+        currentUser = user;
+
+        // Afficher l'utilisateur à l'écran
+        twitchUserDiv.innerHTML = `
+            <img src="${user.profile_image_url}" width="40" style="border-radius:50%">
+            ${user.display_name}
+            <small>#${user.id}</small>
+        `;
+
+        // CRÉER ou METTRE À JOUR la fiche dans Firestore
+        const ref = doc(db, "characters", user.id);
+
+        await setDoc(ref, {
+            ownerName: user.display_name,
+            avatar: user.profile_image_url,
+            updatedAt: Date.now(),
+            stats: {
+            STR: 10, DEX: 10, CON: 10,
+            INT: 10, WIS: 10, CHA: 10
+            }
+        }, { merge: true });
+
+        // Écoute en temps réel de la fiche
+        onSnapshot(ref, (snap) => {
+            const d = snap.data();
+            console.log("Stats mises à jour :", d.stats);
+        });
+        })();
+    }
+    </script>
+</body>
