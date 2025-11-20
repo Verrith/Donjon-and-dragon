@@ -1,5 +1,7 @@
 {
   "hosting": {
+    "site": "donjon-and-dragon-cyber-punk",
+
     "public": "public",
     "ignore": [
       "firebase.json",
