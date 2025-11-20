@@ -3,372 +3,125 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cyber DnD — Live Sheets</title>
-
-  <!-- Fonts & styles -->
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
-
-  <style>
-    /* petite correction responsive pour la demo */
-    .container{width:min(1100px,96%);margin:0 auto}
-  </style>
+  <title>DND Hub — Tabletop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.26.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.26.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.26.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>CYBER DnD // PLAYER HUD</h1>
-      <div id="auth-area">
-        <div id="user-info">Non connecté</div>
-        <div id="auth-buttons">
-          <button id="btn-anon">Connexion Anonyme</button>
-          <button id="btn-google">Connexion Google</button>
-          <button id="btn-email">Connexion Email</button>
-          <button id="btn-logout" style="display:none">Se déconnecter</button>
-        </div>
-      </div>
-    </header>
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/logo.svg" alt="DND Hub" class="logo">
+      <h1>DND Hub</h1>
+    </div>
+    <div class="controls">
+      <button id="darkToggle" aria-label="Basculer thème">🌙</button>
+      <span id="userArea">
+        <button id="signinBtn">Se connecter</button>
+      </span>
+    </div>
+  </header>
 
-    <main class="cols">
-      <section class="col card">
-        <h2 class="mono" style="color:var(--neon-cyan);margin-top:0">Joueurs</h2>
-        <div id="players" class="player-list">
-          <!-- liste des joueurs (realtime) -->
-        </div>
+  <main class="container">
+    <nav class="sidebar">
+      <ul>
+        <li><button data-view="dashboard" class="navbtn active">Tableau</button></li>
+        <li><button data-view="characters" class="navbtn">Fiches</button></li>
+        <li><button data-view="campaigns" class="navbtn">Campagnes</button></li>
+        <li><button data-view="combat" class="navbtn">Combat Tracker</button></li>
+        <li><button data-view="encyclo" class="navbtn">Bestiaire</button></li>
+        <li><button data-view="maps" class="navbtn">Maps</button></li>
+      </ul>
+    </nav>
 
-        <div style="margin-top:12px">
-          <label>Nom de la partie / room (optionnel)<input id="room-id" placeholder="Ex: campagne-01" /></label>
-          <button id="btn-create" style="margin-top:8px">Créer / Mettre à jour ma fiche</button>
+    <section class="content">
+      <!-- Dashboard -->
+      <section id="view-dashboard" class="view visible">
+        <h2>Tableau de bord</h2>
+        <div class="quick">
+          <button id="newCharacter">➕ Nouvelle fiche</button>
+          <button id="newCampaign">➕ Nouvelle campagne</button>
+          <button id="openCombat">⚔️ Démarrer combat</button>
+        </div>
+        <div id="recentArea"></div>
+      </section>
+
+      <!-- Characters -->
+      <section id="view-characters" class="view">
+        <h2>Fiches de personnages</h2>
+        <div id="charactersList" class="grid"></div>
+        <aside class="editor" id="characterEditor" hidden>
+          <h3 id="charTitle">Nouvelle fiche</h3>
+          <form id="charForm">
+            <input name="name" placeholder="Nom" required>
+            <div class="two-cols">
+              <input name="class" placeholder="Classe">
+              <input name="level" type="number" placeholder="Niveau" min="1" value="1">
+            </div>
+            <textarea name="notes" placeholder="Notes / Background"></textarea>
+            <div class="stats-grid">
+              <label>FOR <input name="str" type="number" value="10"></label>
+              <label>DEX <input name="dex" type="number" value="10"></label>
+              <label>CON <input name="con" type="number" value="10"></label>
+              <label>INT <input name="int" type="number" value="10"></label>
+              <label>SAG <input name="wis" type="number" value="10"></label>
+              <label>CHA <input name="cha" type="number" value="10"></label>
+            </div>
+            <div class="form-actions">
+              <button type="submit">Enregistrer</button>
+              <button id="closeChar" type="button">Fermer</button>
+            </div>
+          </form>
+        </aside>
+      </section>
+
+      <!-- Campaigns -->
+      <section id="view-campaigns" class="view">
+        <h2>Campagnes</h2>
+        <div id="campaignsList" class="grid"></div>
+        <aside class="editor" id="campaignEditor" hidden>
+          <h3 id="campTitle">Nouvelle campagne</h3>
+          <input id="campName" placeholder="Titre">
+          <div contenteditable="true" id="campDoc" class="doc">Écris la campagne ici — éditable en temps réel...</div>
+          <div class="form-actions">
+            <button id="saveCampaign">Sauvegarder</button>
+            <button id="closeCamp">Fermer</button>
+          </div>
+        </aside>
+      </section>
+
+      <!-- Combat tracker -->
+      <section id="view-combat" class="view">
+        <h2>Combat Tracker</h2>
+        <div id="combatList"></div>
+        <div class="combat-controls">
+          <input id="combatName" placeholder="Nom (PJ/PNJ)">
+          <input id="combatInit" type="number" placeholder="Initiative">
+          <button id="addCombat">Ajouter</button>
+          <button id="startRound">Prochain tour</button>
         </div>
       </section>
 
-      <section class="col card me">
-        <h2 class="mono" style="color:var(--neon-pink);margin-top:0">Ma Fiche</h2>
-        <div id="my-card">
-          <p>Tu n'es pas connecté — connecte-toi pour créer ta fiche.</p>
-        </div>
-        <div style="margin-top:12px">
-          <label>Notes</label>
-          <textarea id="my-notes" placeholder="Notes de personnage..." style="width:100%;min-height:80px"></textarea>
-        </div>
+      <!-- Encyclopedia -->
+      <section id="view-encyclo" class="view">
+        <h2>Bestiaire & Sorts</h2>
+        <div id="encycloList"></div>
       </section>
-    </main>
 
-    <footer>
-      <small>Hébergé sur GitHub Pages — Backend: Firebase (Auth + Firestore)</small>
-    </footer>
-  </div>
+      <!-- Maps -->
+      <section id="view-maps" class="view">
+        <h2>Maps</h2>
+        <div id="mapsArea">Upload/affiche tes maps ici</div>
+      </section>
+    </section>
+  </main>
 
-  <!-- Firebase (modules) -->
-  <script type="module">
-    // ======= REMPLACE ICI AVEC TA CONFIG FIREBASE =======
-    const firebaseConfig = {
-      apiKey: "REPLACE_APIKEY",
-      authDomain: "REPLACE_AUTHDOMAIN",
-      projectId: "REPLACE_PROJECTID",
-      // storageBucket, messagingSenderId, appId facultatifs
-    };
-    // =====================================================
+  <footer class="footer">
+    <small>© DND Hub — construit par toi</small>
+  </footer>
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-    import {
-      getAuth, onAuthStateChanged, signInAnonymously, signOut,
-      GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword
-    } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-    import {
-      getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy,
-      updateDoc, getDoc, getDocs, serverTimestamp, where, addDoc
-    } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-
-    // init
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // UI refs
-    const userInfoEl = document.getElementById('user-info');
-    const btnAnon = document.getElementById('btn-anon');
-    const btnGoogle = document.getElementById('btn-google');
-    const btnEmail = document.getElementById('btn-email');
-    const btnLogout = document.getElementById('btn-logout');
-    const btnCreate = document.getElementById('btn-create');
-    const playersEl = document.getElementById('players');
-    const myCardEl = document.getElementById('my-card');
-    const roomInput = document.getElementById('room-id');
-    const myNotes = document.getElementById('my-notes');
-
-    let me = null;
-    let unsubPlayers = null;
-    let unsubMyDoc = null;
-    let currentRoom = null;
-    let adminsCache = null;
-
-    // --- Auth buttons
-    btnAnon.onclick = () => signInAnonymously(auth).catch(e=>alert(e.message));
-    btnGoogle.onclick = async () => {
-      const provider = new GoogleAuthProvider();
-      try { await signInWithPopup(auth, provider); }
-      catch(e){ alert(e.message) }
-    };
-    btnEmail.onclick = async () => {
-      const mode = prompt("Tape 'login' pour te connecter, 'signup' pour créer un compte");
-      if(!mode) return;
-      if(mode === 'signup'){
-        const email = prompt("Email:");
-        const pass = prompt("Mot de passe:");
-        if(email && pass) {
-          try { await createUserWithEmailAndPassword(auth, email, pass); }
-          catch(e){ alert(e.message) }
-        }
-      } else {
-        const email = prompt("Email:");
-        const pass = prompt("Mot de passe:");
-        if(email && pass) {
-          try { await signInWithEmailAndPassword(auth, email, pass); }
-          catch(e){ alert(e.message) }
-        }
-      }
-    };
-    btnLogout.onclick = () => signOut(auth).catch(e=>alert(e.message));
-
-    // --- Auth state listener
-    onAuthStateChanged(auth, async (user) => {
-      me = user;
-      if(user){
-        userInfoEl.innerHTML = `<div>Connecté : ${user.displayName || user.email || 'anonyme'} <small style="color:#9bb">${user.uid.slice(0,6)}</small></div>`;
-        btnLogout.style.display = 'inline-block';
-        [btnAnon, btnGoogle, btnEmail].forEach(b=>b.style.display='none');
-        // start listeners
-        startPlayersListener();
-        startMyDocListener();
-        // prefetch admins list
-        fetchAdmins();
-      } else {
-        userInfoEl.textContent = 'Non connecté';
-        btnLogout.style.display = 'none';
-        [btnAnon, btnGoogle, btnEmail].forEach(b=>b.style.display='inline-block');
-        stopListeners();
-        showNotConnected();
-      }
-    });
-
-    // --- Create / update my character doc
-    btnCreate.onclick = async () => {
-      if(!me){ alert("Connecte-toi d'abord"); return; }
-      const room = roomInput.value.trim() || 'global';
-      currentRoom = room;
-      const docId = `${room}__${me.uid}`;
-      const ref = doc(db, 'characters', docId);
-      const payload = {
-        ownerUid: me.uid,
-        ownerName: me.displayName || me.email || 'Anonyme',
-        name: prompt("Nom du personnage (affiché) :", (me.displayName || 'Aventurier')) || 'Aventurier',
-        class: prompt("Classe :", "Aventurier") || 'Aventurier',
-        room: room,
-        updatedAt: Date.now(),
-        stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-        notes: ""
-      };
-      await setDoc(ref, payload, { merge: true });
-      alert("Fiche créée / mise à jour !");
-    };
-
-    // --- Start listening for players in current room (realtime)
-    function startPlayersListener(){
-      if(unsubPlayers) return;
-      // If user specified room, listen to that room; otherwise listen to 'global'
-      const room = roomInput.value.trim() || 'global';
-      currentRoom = room;
-      const q = query(collection(db, 'characters'), orderBy('name'));
-      // We'll filter client-side by room for simplicity (alternatively use where('room','==',room))
-      unsubPlayers = onSnapshot(q, snap => {
-        playersEl.innerHTML = '';
-        snap.forEach(snapDoc => {
-          const d = snapDoc.data();
-          // only show same room
-          if(!d || (d.room || 'global') !== currentRoom) return;
-          renderPlayerCard(snapDoc.id, d);
-        });
-      }, err => {
-        console.error('players listener error', err);
-      });
-    }
-
-    // stop listeners
-    function stopListeners(){
-      if(unsubPlayers){ unsubPlayers(); unsubPlayers = null; }
-      if(unsubMyDoc){ unsubMyDoc(); unsubMyDoc = null; }
-    }
-
-    // --- My doc listener: listen to the doc with id `${room}__${me.uid}`
-    function startMyDocListener(){
-      if(!me) return;
-      const docId = `${(roomInput.value.trim() || 'global')}__${me.uid}`;
-      const ref = doc(db, 'characters', docId);
-      if(unsubMyDoc) unsubMyDoc();
-      unsubMyDoc = onSnapshot(ref, snap => {
-        if(!snap.exists()){
-          myCardEl.innerHTML = `<p>Tu n'as pas encore de fiche. Utilise "Créer / Mettre à jour ma fiche".</p>`;
-          myNotes.value = "";
-          return;
-        }
-        const d = snap.data();
-        renderMyCard(snap.id, d);
-        myNotes.value = d.notes || '';
-      });
-    }
-
-    // When user edits notes, save
-    myNotes.addEventListener('blur', async () => {
-      if(!me) return;
-      const docId = `${(roomInput.value.trim() || 'global')}__${me.uid}`;
-      const ref = doc(db, 'characters', docId);
-      await updateDoc(ref, { notes: myNotes.value, updatedAt: Date.now() });
-    });
-
-    // --- Render my card (editable inputs + stat buttons)
-    function renderMyCard(id, d){
-      myCardEl.innerHTML = '';
-      const wrapper = document.createElement('div');
-      wrapper.className = 'card me';
-      const title = document.createElement('h3');
-      title.textContent = `${d.name} ${d.class ? '— ' + d.class : ''}`;
-      wrapper.appendChild(title);
-
-      const statsDiv = document.createElement('div');
-      for(const [k,v] of Object.entries(d.stats || {})){
-        const st = document.createElement('div');
-        st.className = 'stat';
-        st.innerHTML = `<strong style="width:48px">${k}</strong>
-          <input type="number" value="${v}" min="0" data-stat="${k}" style="width:80px"/>
-          <button data-stat="${k}" class="icon-btn">+1</button>
-          <button data-stat="${k}" data-dec class="icon-btn">−1</button>`;
-        statsDiv.appendChild(st);
-
-        // listeners
-        st.querySelector('input').addEventListener('change', async (e) => {
-          const newVal = parseInt(e.target.value) || 0;
-          await updateStat(id, k, newVal);
-        });
-        st.querySelector('button[data-dec]')?.addEventListener('click', async ()=> {
-          const cur = d.stats[k] || 0;
-          await updateStat(id, k, cur-1);
-        });
-        st.querySelector('button:not([data-dec])')?.addEventListener('click', async ()=> {
-          const cur = d.stats[k] || 0;
-          await updateStat(id, k, cur+1);
-        });
-      }
-      wrapper.appendChild(statsDiv);
-
-      myCardEl.appendChild(wrapper);
-    }
-
-    // --- Update stat helper
-    async function updateStat(docId, statKey, value){
-      value = Math.max(0, Math.min(99, parseInt(value) || 0));
-      const ref = doc(db, 'characters', docId);
-      const obj = {};
-      obj[`stats.${statKey}`] = value;
-      obj['updatedAt'] = Date.now();
-      await updateDoc(ref, obj);
-    }
-
-    // --- Render other player's card (read-only)
-    function renderPlayerCard(id, d){
-      const el = document.createElement('div');
-      el.className = 'card';
-      el.style.marginBottom = '8px';
-      el.innerHTML = `<strong>${escapeHtml(d.name)}</strong> ${d.ownerName ? '<small>('+escapeHtml(d.ownerName)+')</small>':''}
-        ${id === `${(currentRoom||'global')}__${(me&&me.uid)}` ? '<span class="admin-badge">Ceci est toi</span>':''}
-        <div style="margin-top:6px">Classe: ${escapeHtml(d.class || '')}</div>
-        <div style="margin-top:8px" id="stats-${id}"></div>
-        <div style="margin-top:8px"><small>Dernière MAJ: ${d.updatedAt ? new Date(d.updatedAt).toLocaleString() : '—'}</small></div>
-      `;
-      playersEl.appendChild(el);
-
-      const statsContainer = el.querySelector(`#stats-${id}`);
-      statsContainer.innerHTML = '';
-      for(const [k,v] of Object.entries(d.stats || {})){
-        const s = document.createElement('span');
-        s.className = 'stat-badge';
-        s.textContent = `${k}: ${v}`;
-        statsContainer.appendChild(s);
-      }
-    }
-
-    function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
-
-    // --- Simple admin fetch (reads meta/admins doc once)
-    async function fetchAdmins(){
-      try {
-        const snap = await getDoc(doc(db,'meta','admins'));
-        adminsCache = snap.exists() ? (snap.data().uids || []) : [];
-      } catch(e){
-        console.warn('Impossible de lire meta/admins', e);
-        adminsCache = [];
-      }
-    }
-
-    // --- helper: check if uid is admin
-    function isAdmin(uid){
-      if(!adminsCache) return false;
-      return adminsCache.includes(uid);
-    }
-
-    // --- show not connected UI
-    function showNotConnected(){
-      myCardEl.innerHTML = `<p>Tu n'es pas connecté · Crée une fiche après connexion.</p>`;
-      playersEl.innerHTML = `<p>Connecte-toi pour voir les fiches en temps réel.</p>`;
-    }
-
-    // --- Extra: allow switching room input -> restart listeners
-    roomInput.addEventListener('change', () => {
-      // restart players listener and my doc listener
-      stopListeners();
-      if(me) { startPlayersListener(); startMyDocListener(); }
-    });
-
-    // init
-    showNotConnected();
-
-    // --- Helpful: expose some funcs for debug
-    window.__dnd = { auth, db };
-  </script>
-
-  <!-- Firestore security rules (paste in Firebase Console -> Firestore -> Rules) :
-  rules_version = '2';
-  service cloud.firestore {
-    match /databases/{database}/documents {
-      match /characters/{docId} {
-        allow read: if true;
-        // doc id format: "<room>__<uid>"
-        allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerUid;
-        allow update: if request.auth != null && (
-                      request.auth.uid == resource.data.ownerUid
-                      || isAdmin(request.auth.uid));
-        allow delete: if request.auth != null && (request.auth.uid == resource.data.ownerUid || isAdmin(request.auth.uid));
-      }
-      match /meta/admins {
-        allow read: if true;
-        allow write: if false; // write from console only
-      }
-      function isAdmin(uid){
-        return get(/databases/$(database)/documents/meta/admins).data != null
-               && (get(/databases/$(database)/documents/meta/admins).data.uids).hasAny([uid]);
-      }
-    }
-  }
-  ======================================================================
-  Instructions rapides :
-  1) Dans Firebase Console -> Auth -> active Google et Email/Password.
-  2) Firestore -> créer DB (mode production ou test selon toi).
-  3) Dans Project settings -> copier firebaseConfig et remplacer en haut.
-  4) Crée manuellement document meta/admins (collection meta, doc admins) :
-     { "uids": ["UID_ADMIN_1","UID_ADMIN_2"] }
-  5) Déploie ce repo sur GitHub Pages.
-  ======================================================================
-  -->
-
+  <script src="js/app.js" type="module"></script>
 </body>
 </html>
