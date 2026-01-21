@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>DM – Gestion Survie</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* ===== BASE ===== */
+body {
+    margin: 0;
+    padding: 40px;
+    background: #2b1d13;
+    font-family: 'Crimson Pro', serif;
+    color: #2a1b12;
+}
+
+/* ===== PARCHEMIN ===== */
+.card {
+    max-width: 900px;
+    margin: 30px auto;
+    background: #f1e2c6;
+    padding: 35px;
+    border: 3px solid #4a3420;
+    border-radius: 12px;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.2),
+                0 15px 35px rgba(0,0,0,0.6);
+}
+
+/* ===== TITRES ===== */
+h1 {
+    font-family: 'Uncial Antiqua', serif;
+    text-align: center;
+    font-size: 2.4em;
+    margin-bottom: 20px;
+    outline: none;
+    cursor: text;
+}
+
+.section-title {
+    font-family: 'Uncial Antiqua', serif;
+    font-size: 1.4em;
+    border-bottom: 2px solid #6b4a2b;
+    margin-bottom: 15px;
+}
+
+/* ===== BLOCS ===== */
+.box {
+    border: 2px solid #b89c6c;
+    border-radius: 10px;
+    padding: 20px;
+    background: rgba(255,255,255,0.35);
+}
+
+/* ===== CONTROLE DM ===== */
+.dm-panel {
+    max-width: 900px;
+    margin: auto;
+}
+
+.dm-panel input {
+    width: 80px;
+    padding: 6px;
+    font-size: 1em;
+}
+
+button {
+    margin-top: 10px;
+    padding: 10px;
+    width: 100%;
+    background: linear-gradient(#c8a46a, #a8864f);
+    border: 2px solid #4a3420;
+    border-radius: 10px;
+    font-family: 'Uncial Antiqua', serif;
+    font-size: 1.1em;
+    cursor: pointer;
+}
+
+/* ===== GRILLES ===== */
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+/* ===== JAUGES ===== */
+.gauge label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.gauge-bar {
+    height: 22px;
+    border: 2px solid #6b4a2b;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(0,0,0,0.15);
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.4);
+}
+
+.gauge-fill {
+    height: 100%;
+    width: 100%;
+    transition: width 0.3s ease;
+}
+
+.hunger { background: linear-gradient(#c28b45, #8a5a2b); }
+.thirst { background: linear-gradient(#4a7ca5, #2f4f6f); }
+.fatigue { background: linear-gradient(#777, #444); }
+
+.gauge input {
+    margin-top: 6px;
+    width: 100%;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===== CONTROLE DU DM ===== -->
+<div class="card dm-panel">
+    <div class="section-title">Contrôle du MJ</div>
+    <label>Nombre de personnages :</label>
+    <input type="number" id="playerCount" min="1" value="1">
+    <button id="generateBtn">Générer les personnages</button>
+</div>
+
+<!-- ===== CONTENEUR DES PERSONNAGES ===== -->
+<div id="characters"></div>
+
+<!-- ===== TEMPLATE PERSONNAGE ===== -->
+<template id="characterTemplate">
+    <div class="card character">
+
+        <h1 contenteditable="true">Nom du personnage</h1>
+
+        <div class="section-title">Survie</div>
+        <div class="box">
+            <div class="grid-3">
+
+                <div class="gauge">
+                    <label>Faim</label>
+                    <div class="gauge-bar">
+                        <div class="gauge-fill hunger"></div>
+                    </div>
+                    <input type="number" class="gauge-input" min="0" max="100" value="100">
+                </div>
+
+                <div class="gauge">
+                    <label>Soif</label>
+                    <div class="gauge-bar">
+                        <div class="gauge-fill thirst"></div>
+                    </div>
+                    <input type="number" class="gauge-input" min="0" max="100" value="100">
+                </div>
+
+                <div class="gauge">
+                    <label>Fatigue</label>
+                    <div class="gauge-bar">
+                        <div class="gauge-fill fatigue"></div>
+                    </div>
+                    <input type="number" class="gauge-input" min="0" max="100" value="0">
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</template>
+
+<script>
+const container = document.getElementById("characters");
+const template = document.getElementById("characterTemplate");
+
+function clamp(v, min = 0, max = 100) {
+    return Math.max(min, Math.min(max, v));
+}
+
+function updateCharacter(character) {
+    character.querySelectorAll(".gauge-input").forEach(input => {
+        const value = clamp(parseInt(input.value) || 0);
+        input.value = value;
+        input.closest(".gauge")
+             .querySelector(".gauge-fill")
+             .style.width = value + "%";
+    });
+}
+
+document.getElementById("generateBtn").addEventListener("click", () => {
+    const count = clamp(
+        parseInt(document.getElementById("playerCount").value),
+        1,
+        50
+    );
+
+    container.innerHTML = "";
+
+    for (let i = 1; i <= count; i++) {
+        const clone = template.content.cloneNode(true);
+        clone.querySelector("h1").textContent = "Personnage " + i;
+        container.appendChild(clone);
+        updateCharacter(container.lastElementChild);
+    }
+});
+
+document.addEventListener("input", e => {
+    if (!e.target.classList.contains("gauge-input")) return;
+    updateCharacter(e.target.closest(".character"));
+});
+</script>
+
+</body>
+</html>
