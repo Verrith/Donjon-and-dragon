@@ -1,127 +1,207 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>DND Hub — Tabletop</title>
-  <link rel="stylesheet" href="css/style.css">
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.26.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.26.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.26.1/firebase-firestore-compat.js"></script>
+<meta charset="UTF-8">
+<title>Fiche de Personnage D&D</title>
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+<link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 </head>
+
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <img src="assets/logo.svg" alt="DND Hub" class="logo">
-      <h1>DND Hub</h1>
-    </div>
-    <div class="controls">
-      <button id="darkToggle" aria-label="Basculer thème">🌙</button>
-      <span id="userArea">
-        <button id="signinBtn">Se connecter</button>
-      </span>
-    </div>
-  </header>
 
-  <main class="container">
-    <nav class="sidebar">
-      <ul>
-        <li><button data-view="dashboard" class="navbtn active">Tableau</button></li>
-        <li><button data-view="characters" class="navbtn">Fiches</button></li>
-        <li><button data-view="campaigns" class="navbtn">Campagnes</button></li>
-        <li><button data-view="combat" class="navbtn">Combat Tracker</button></li>
-        <li><button data-view="encyclo" class="navbtn">Bestiaire</button></li>
-        <li><button data-view="maps" class="navbtn">Maps</button></li>
-      </ul>
-    </nav>
+<div class="card">
+    <h1>Fiche de Personnage</h1>
 
-    <section class="content">
-      <!-- Dashboard -->
-      <section id="view-dashboard" class="view visible">
-        <h2>Tableau de bord</h2>
-        <div class="quick">
-          <button id="newCharacter">➕ Nouvelle fiche</button>
-          <button id="newCampaign">➕ Nouvelle campagne</button>
-          <button id="openCombat">⚔️ Démarrer combat</button>
+    <!-- Ligne du haut : identité + PV/AC -->
+    <div class="top-row">
+        <!-- Identité -->
+        <div>
+            <span class="section-title">Identité</span><br><br>
+            <div class="box">
+                <div class="field">
+                    <label>Nom</label>
+                    <span class="value" id="nomDisplay"></span>
+                    <input type="text" id="nom" class="editField" style="display:none;">
+                </div>
+                <div class="field">
+                    <label>Classe</label>
+                    <span class="value" id="classeDisplay"></span>
+                    <input type="text" id="classe" class="editField" style="display:none;">
+                </div>
+                <div class="field">
+                    <label>Niveau</label>
+                    <span class="value" id="niveauDisplay"></span>
+                    <input type="number" id="niveau" class="editField" style="display:none;">
+                </div>
+                <div class="field">
+                    <label>Race</label>
+                    <span class="value" id="raceDisplay"></span>
+                    <input type="text" id="race" class="editField" style="display:none;">
+                </div>
+                <div class="field">
+                    <label>Alignement</label>
+                    <span class="value" id="alignementDisplay"></span>
+                    <input type="text" id="alignement" class="editField" style="display:none;">
+                </div>
+                <div class="field">
+                    <label>Historique</label>
+                    <span class="value" id="backgroundDisplay"></span>
+                    <input type="text" id="background" class="editField" style="display:none;">
+                </div>
+            </div>
         </div>
-        <div id="recentArea"></div>
-      </section>
 
-      <!-- Characters -->
-      <section id="view-characters" class="view">
-        <h2>Fiches de personnages</h2>
-        <div id="charactersList" class="grid"></div>
-        <aside class="editor" id="characterEditor" hidden>
-          <h3 id="charTitle">Nouvelle fiche</h3>
-          <form id="charForm">
-            <input name="name" placeholder="Nom" required>
-            <div class="two-cols">
-              <input name="class" placeholder="Classe">
-              <input name="level" type="number" placeholder="Niveau" min="1" value="1">
+        <!-- PV / AC / Initiative / Vitesse -->
+        <div>
+            <span class="section-title">Combat</span><br><br>
+            <div class="box">
+                <div class="grid-2">
+                    <div class="field">
+                        <label>PV max</label>
+                        <span class="value" id="pvMaxDisplay"></span>
+                        <input type="number" id="pvMax" class="editField" style="display:none;">
+                    </div>
+                    <div class="field">
+                        <label>PV actuels</label>
+                        <span class="value" id="pvActuelsDisplay"></span>
+                        <input type="number" id="pvActuels" class="editField" style="display:none;">
+                    </div>
+                </div>
+                <div class="grid-3" style="margin-top:8px;">
+                    <div class="field">
+                        <label>Classe d'armure</label>
+                        <span class="value" id="caDisplay"></span>
+                        <input type="number" id="ca" class="editField" style="display:none;">
+                    </div>
+                    <div class="field">
+                        <label>Initiative</label>
+                        <span class="value" id="initiativeDisplay"></span>
+                        <input type="number" id="initiative" class="editField" style="display:none;">
+                    </div>
+                    <div class="field">
+                        <label>Vitesse</label>
+                        <span class="value" id="vitesseDisplay"></span>
+                        <input type="text" id="vitesse" class="editField" style="display:none;">
+                    </div>
+                </div>
             </div>
-            <textarea name="notes" placeholder="Notes / Background"></textarea>
-            <div class="stats-grid">
-              <label>FOR <input name="str" type="number" value="10"></label>
-              <label>DEX <input name="dex" type="number" value="10"></label>
-              <label>CON <input name="con" type="number" value="10"></label>
-              <label>INT <input name="int" type="number" value="10"></label>
-              <label>SAG <input name="wis" type="number" value="10"></label>
-              <label>CHA <input name="cha" type="number" value="10"></label>
-            </div>
-            <div class="form-actions">
-              <button type="submit">Enregistrer</button>
-              <button id="closeChar" type="button">Fermer</button>
-            </div>
-          </form>
-        </aside>
-      </section>
-
-      <!-- Campaigns -->
-      <section id="view-campaigns" class="view">
-        <h2>Campagnes</h2>
-        <div id="campaignsList" class="grid"></div>
-        <aside class="editor" id="campaignEditor" hidden>
-          <h3 id="campTitle">Nouvelle campagne</h3>
-          <input id="campName" placeholder="Titre">
-          <div contenteditable="true" id="campDoc" class="doc">Écris la campagne ici — éditable en temps réel...</div>
-          <div class="form-actions">
-            <button id="saveCampaign">Sauvegarder</button>
-            <button id="closeCamp">Fermer</button>
-          </div>
-        </aside>
-      </section>
-
-      <!-- Combat tracker -->
-      <section id="view-combat" class="view">
-        <h2>Combat Tracker</h2>
-        <div id="combatList"></div>
-        <div class="combat-controls">
-          <input id="combatName" placeholder="Nom (PJ/PNJ)">
-          <input id="combatInit" type="number" placeholder="Initiative">
-          <button id="addCombat">Ajouter</button>
-          <button id="startRound">Prochain tour</button>
         </div>
-      </section>
+    </div>
 
-      <!-- Encyclopedia -->
-      <section id="view-encyclo" class="view">
-        <h2>Bestiaire & Sorts</h2>
-        <div id="encycloList"></div>
-      </section>
+    <!-- Caractéristiques principales -->
+    <span class="section-title">Caractéristiques</span><br><br>
+    <div class="box">
+        <div class="grid-3">
+            <div class="field">
+                <label>Force</label>
+                <span class="value" id="forceDisplay"></span>
+                <input type="number" id="force" class="editField" style="display:none;">
+            </div>
+            <div class="field">
+                <label>Dextérité</label>
+                <span class="value" id="dexDisplay"></span>
+                <input type="number" id="dex" class="editField" style="display:none;">
+            </div>
+            <div class="field">
+                <label>Constitution</label>
+                <span class="value" id="conDisplay"></span>
+                <input type="number" id="con" class="editField" style="display:none;">
+            </div>
+            <div class="field">
+                <label>Intelligence</label>
+                <span class="value" id="intDisplay"></span>
+                <input type="number" id="int" class="editField" style="display:none;">
+            </div>
+            <div class="field">
+                <label>Sagesse</label>
+                <span class="value" id="sagDisplay"></span>
+                <input type="number" id="sag" class="editField" style="display:none;">
+            </div>
+            <div class="field">
+                <label>Charisme</label>
+                <span class="value" id="chaDisplay"></span>
+                <input type="number" id="cha" class="editField" style="display:none;">
+            </div>
+        </div>
+    </div>
 
-      <!-- Maps -->
-      <section id="view-maps" class="view">
-        <h2>Maps</h2>
-        <div id="mapsArea">Upload/affiche tes maps ici</div>
-      </section>
-    </section>
-  </main>
+    <!-- Sauvegardes & Passives -->
+    <span class="section-title">Jets de sauvegarde & Perceptions</span><br><br>
+    <div class="box">
+        <div class="grid-3">
+            <div class="field">
+                <label>JS Force</label>
+                <span class="value" id="jsForceDisplay"></span>
+                <input type="number" id="jsForce" class="editField" style="display:none;">
+            </div>
+            <div class="field">
+                <label>JS Dextérité</label>
+                <span class="value" id="jsDexDisplay"></span>
+                <input type="number" id="jsDex" class="editField" style="display:none;">
+            </div>
+            <div class="field">
+                <label>JS Constitution</label>
+                <span class="value" id="jsConDisplay"></span>
+                <input type="number" id="jsCon" class="editField" style="display:none;">
+            </div>
+            <div class="field">
+                <label>JS Intelligence</label>
+                <span class="value" id="jsIntDisplay"></span>
+                <input type="number" id="jsInt" class="editField" style="display:none;">
+            </div>
+            <div class="field">
+                <label>JS Sagesse</label>
+                <span class="value" id="jsSagDisplay"></span>
+                <input type="number" id="jsSag" class="editField" style="display:none;">
+            </div>
+            <div class="field">
+                <label>JS Charisme</label>
+                <span class="value" id="jsChaDisplay"></span>
+                <input type="number" id="jsCha" class="editField" style="display:none;">
+            </div>
+        </div>
 
-  <footer class="footer">
-    <small>© DND Hub — construit par toi</small>
-  </footer>
+        <div class="grid-3" style="margin-top:10px;">
+            <div class="field">
+                <label>Perception passive</label>
+                <span class="value" id="perceptionPassiveDisplay"></span>
+                <input type="number" id="perceptionPassive" class="editField" style="display:none;">
+            </div>
+            <div class="field">
+                <label>Investigation passive</label>
+                <span class="value" id="investigationPassiveDisplay"></span>
+                <input type="number" id="investigationPassive" class="editField" style="display:none;">
+            </div>
+            <div class="field">
+                <label>Perspicacité passive</label>
+                <span class="value" id="perspicacitePassiveDisplay"></span>
+                <input type="number" id="perspicacitePassive" class="editField" style="display:none;">
+            </div>
+        </div>
+    </div>
 
-  <script src="js/app.js" type="module"></script>
+    <!-- Attaques & Sorts / Inventaire / Traits -->
+    <span class="section-title">Attaques & Sorts</span><br><br>
+    <div class="box">
+        <span class="value" id="attaquesDisplay" style="min-height:60px; white-space:pre-wrap;"></span>
+        <textarea id="attaques" class="editField" style="display:none; min-height:80px;"></textarea>
+    </div>
+
+    <span class="section-title">Inventaire</span><br><br>
+    <div class="box">
+        <span class="value" id="inventaireDisplay" style="min-height:60px; white-space:pre-wrap;"></span>
+        <textarea id="inventaire" class="editField" style="display:none; min-height:80px;"></textarea>
+    </div>
+
+    <span class="section-title">Traits & Capacités</span><br><br>
+    <div class="box">
+        <span class="value" id="traitsDisplay" style="min-height:60px; white-space:pre-wrap;"></span>
+        <textarea id="traits" class="editField" style="display:none; min-height:80px;"></textarea>
+    </div>
+
+    <button id="editBtn">Modifier</button>
+</div>
+
 </body>
 </html>

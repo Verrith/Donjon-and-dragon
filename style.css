@@ -1,38 +1,153 @@
-:root{
-  --bg:#f6f7fb; --panel:#ffffff; --muted:#6b7280; --accent:#6c5ce7;
-  --card-shadow: 0 8px 20px rgba(16,24,40,0.06);
-  --radius:12px;
-}
-*{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
-html,body{height:100%;margin:0;background:var(--bg);color:#111;}
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:linear-gradient(90deg,#fff,#f9f9ff);box-shadow:0 2px 6px rgba(0,0,0,0.03)}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{width:36px;height:36px}
-.container{display:flex;gap:20px;padding:20px;max-width:1200px;margin:20px auto}
-.sidebar{width:160px;background:var(--panel);border-radius:var(--radius);padding:12px;box-shadow:var(--card-shadow)}
-.sidebar ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
-.navbtn{background:transparent;border:0;padding:10px;text-align:left;border-radius:10px;cursor:pointer;color:var(--muted)}
-.navbtn:hover,.navbtn.active{background:linear-gradient(90deg,rgba(108,92,231,0.12),rgba(108,92,231,0.04));color:var(--accent)}
-.content{flex:1;min-height:60vh}
-.view{background:var(--panel);padding:18px;border-radius:12px;box-shadow:var(--card-shadow);display:none}
-.view.visible{display:block}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-.card{background:linear-gradient(180deg,#fff,#fafaff);padding:12px;border-radius:10px;box-shadow:0 6px 14px rgba(0,0,0,0.04)}
-.editor{position:relative;margin-top:12px;padding:12px;border-left:4px solid var(--accent);background:#fff}
-.two-cols{display:flex;gap:8px}
-.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
-.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
-.topbar .controls{display:flex;gap:8px;align-items:center}
-button{cursor:pointer}
-.footer{text-align:center;padding:18px;color:var(--muted)}
-.doc{min-height:180px;padding:12px;border-radius:8px;border:1px dashed #e6e6f0;background:#fbfbff;overflow:auto}
-@media (max-width:900px){
-  .container{flex-direction:column;padding:12px}
-  .sidebar{width:100%;display:flex;overflow:auto}
+/* =======================
+   BASE
+======================= */
+body {
+    margin: 0;
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+    background: #2b1d13;
+    font-family: 'Crimson Pro', serif;
+    color: #2a1b12;
 }
 
-/* dark mode */
-body.dark{background:#0b1020;color:#dbe6ff}
-body.dark .topbar{background:#071028;color:#dbe6ff}
-body.dark .panel, body.dark .view{background:#07102b}
-body.dark :root{}
+/* =======================
+   PARCHEMIN
+======================= */
+.card {
+    width: 900px;
+    background: #f1e2c6;
+    background-image:
+        radial-gradient(circle at top left, rgba(255,255,255,0.35), transparent 50%),
+        radial-gradient(circle at bottom right, rgba(0,0,0,0.25), transparent 55%),
+        repeating-linear-gradient(
+            0deg,
+            rgba(0,0,0,0.02),
+            rgba(0,0,0,0.02) 1px,
+            transparent 1px,
+            transparent 28px
+        );
+    border: 3px solid #4a3420;
+    border-radius: 12px;
+    padding: 35px;
+    box-shadow:
+        inset 0 0 40px rgba(0,0,0,0.2),
+        0 15px 35px rgba(0,0,0,0.6);
+    position: relative;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    pointer-events: none;
+    box-shadow:
+        inset 0 0 60px rgba(0,0,0,0.35),
+        inset 0 0 120px rgba(0,0,0,0.2);
+}
+
+/* =======================
+   TITRES
+======================= */
+.card h1 {
+    font-family: 'Uncial Antiqua', serif;
+    text-align: center;
+    font-size: 2.5em;
+    margin-bottom: 25px;
+    color: #3a1f0f;
+}
+
+.section-title {
+    font-family: 'Uncial Antiqua', serif;
+    font-size: 1.5em;
+    color: #3a1f0f;
+    border-bottom: 2px solid #6b4a2b;
+    padding-bottom: 5px;
+    margin: 30px 0 15px;
+}
+
+/* =======================
+   BLOCS
+======================= */
+.box {
+    border: 2px solid #b89c6c;
+    border-radius: 10px;
+    padding: 20px;
+    background: rgba(255,255,255,0.35);
+    margin-bottom: 25px;
+}
+
+/* =======================
+   CHAMPS (ALIGNEMENT FIX)
+======================= */
+.field {
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.field label {
+    font-weight: bold;
+    color: #3a1f0f;
+    white-space: nowrap;
+}
+
+/* =======================
+   INPUTS
+======================= */
+input,
+textarea {
+    width: 100%;
+    max-width: 260px;
+    padding: 6px 8px;
+    font-family: 'Crimson Pro', serif;
+    font-size: 1em;
+    color: #2a1b12;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid #b89c6c;
+    border-radius: 6px;
+    outline: none;
+}
+
+textarea {
+    resize: vertical;
+}
+
+input:focus,
+textarea:focus {
+    background: rgba(255,255,255,0.9);
+    border-color: #6b4a2b;
+}
+
+/* =======================
+   GRILLES STATS
+======================= */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 30px;
+}
+
+/* =======================
+   BOUTON
+======================= */
+button {
+    width: 100%;
+    margin-top: 30px;
+    padding: 14px;
+    background: linear-gradient(#c8a46a, #a8864f);
+    border: 2px solid #4a3420;
+    border-radius: 12px;
+    color: #2a1b12;
+    font-family: 'Uncial Antiqua', serif;
+    font-size: 1.2em;
+    cursor: pointer;
+    box-shadow: inset 0 0 6px rgba(255,255,255,0.4);
+}
+
+button:hover {
+    background: linear-gradient(#d8b87c, #b18f58);
+}
